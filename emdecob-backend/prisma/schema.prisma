@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role     @default(ANALYST)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  ANALYST
+}
+
+model Executive {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  totalScore      Float    @default(0)
+  callsEvaluated  Int      @default(0)
+  audios          Audio[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Audio {
+  id                    String      @id @default(uuid())
+  filename              String
+  driveFileId           String      @unique
+  executiveId           String?
+  executive             Executive?  @relation(fields: [executiveId], references: [id])
+  date                  DateTime
+  status                AudioStatus @default(PENDING)
+  transcript            String?
+  iaSummary             String?
+  googleSheetUrl        String?
+  score                 Float?
+  kpiResults            Json?
+  processingStartedAt   DateTime?
+  processingFinishedAt  DateTime?
+  createdAt             DateTime    @default(now())
+}
+
+enum AudioStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  ERROR
+}
+
+model KPI {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  weight      Float    @default(1.0)
+  category    String?
+  isActive    Boolean  @default(true)
+}
+
+model SystemConfig {
+  id                       String @id @default(uuid())
+  driveInputFolderId       String
+  driveOutputFolderId      String
+  driveProcessedFolderId   String
+  googleSheetsTemplateId   String
+  openaiModel              String @default("gpt-4o")
+  systemPrompt             String
+  checkFrequencyMinutes    Int    @default(5)
+}

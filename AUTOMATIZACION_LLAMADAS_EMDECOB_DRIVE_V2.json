@@ -1,0 +1,543 @@
+{
+  "name": "AUTOMATIZACION LLAMADAS EMDECOB - DRIVE V2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1400,
+        400
+      ],
+      "id": "trigger-schedule",
+      "name": "Activador de programación"
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultUrl": "https://www.googleapis.com/drive/v3/files/root",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1uVP00FSXDeSVWFtHMJcDzm8TTaP-wLCQ"
+        },
+        "options": {
+          "fields": ["id", "name", "mimeType", "createdTime", "modifiedTime"]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1200,
+        400
+      ],
+      "id": "list-drive-files",
+      "name": "Listar archivos en Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "RKA80dU2ew0eUQzH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "filter-mp3",
+              "leftValue": "={{ $json.name.toLowerCase() }}",
+              "rightValue": ".mp3",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            },
+            {
+              "id": "filter-wav",
+              "leftValue": "={{ $json.name.toLowerCase() }}",
+              "rightValue": ".wav",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            },
+            {
+              "id": "filter-mpeg",
+              "leftValue": "={{ $json.name.toLowerCase() }}",
+              "rightValue": ".mpeg",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            },
+            {
+              "id": "filter-m4a",
+              "leftValue": "={{ $json.name.toLowerCase() }}",
+              "rightValue": ".m4a",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -1000,
+        400
+      ],
+      "id": "filter-audio-files",
+      "name": "Filtrar solo audios"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parsear información del nombre del archivo\nconst items = $input.all();\n\nfunction lastMatch(text, re) {\n  let m, last = null;\n  while ((m = re.exec(text)) !== null) last = m;\n  return last;\n}\n\nfunction normAmPm(s) {\n  if (!s) return null;\n  const t = s.toLowerCase().replace(/\\./g, \"\");\n  if (t === \"am\") return \"AM\";\n  if (t === \"pm\") return \"PM\";\n  return null;\n}\n\nfunction parseFromFileName(fileName) {\n  const extension = (fileName.split(\".\").pop() || \"\").toLowerCase();\n  const stem = fileName.replace(/\\.[^.]+$/, \"\");\n\n  const dateRE = /(\\d{4}-\\d{2}-\\d{2})/g;\n  const dm = lastMatch(stem, dateRE);\n  const fecha = dm ? dm[1] : null;\n\n  const timeRE = /(\\d{1,2})([.:])(\\d{2})(?:\\2(\\d{2}))?\\s*(a\\.?m|p\\.?m|am|pm)?/gi;\n  const tm = lastMatch(stem, timeRE);\n\n  let hora = null;\n  if (tm) {\n    let hh = tm[1].padStart(2, \"0\");\n    const mm = tm[3];\n    const ss = tm[4] || \"00\";\n    const ampm = normAmPm(tm[5]);\n\n    if (ampm) {\n      hora = `${hh}:${mm}:${ss} ${ampm}`;\n    } else {\n      hora = `${hh}:${mm}:${ss}`;\n    }\n  }\n\n  let ejecutivo = stem;\n  if (fecha) ejecutivo = ejecutivo.replace(fecha, \" \");\n  if (tm) ejecutivo = ejecutivo.replace(tm[0], \" \");\n  ejecutivo = ejecutivo.replace(/\\ba\\s+las\\b/i, \" \");\n  ejecutivo = ejecutivo.replace(/\\s{2,}/g, \" \").trim();\n\n  return { extension, fecha, hora, ejecutivo };\n}\n\nreturn items.map(item => {\n  const fileName = item.json.name;\n  const fileId = item.json.id;\n  const { extension, fecha, hora, ejecutivo } = parseFromFileName(fileName);\n\n  return {\n    json: {\n      fileId,\n      fileName,\n      extension,\n      ejecutivo,\n      fecha,\n      hora,\n      mimeType: item.json.mimeType\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        400
+      ],
+      "id": "parse-filename",
+      "name": "Parsear nombre archivo"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.fileId }}"
+        },
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -600,
+        400
+      ],
+      "id": "download-audio",
+      "name": "Descargar audio",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "RKA80dU2ew0eUQzH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -400,
+        400
+      ],
+      "id": "transcribe-audio",
+      "name": "Transcribir audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "4ebgwtLss1PCZrf3",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Eres un supervisor experto en calidad de llamadas de cobranza jurídica con 15 años de experiencia. Tu evaluación debe ser JUSTA, OBJETIVA y BASADA EN EVIDENCIA REAL de la transcripción.\n\n🎯 CRITERIOS DE EVALUACIÓN (20 KPIs):\n\n**APERTURA Y COMUNICACIÓN:**\n1. PRESENTACIÓN: El agente se identifica claramente con nombre completo y empresa\n2. MOTIVO CLARO: Explica el propósito de la llamada de forma directa\n3. ESCUCHA ACTIVA: Permite hablar al cliente, no interrumpe constantemente, demuestra comprensión\n4. PREGUNTAR: Hace preguntas abiertas para entender la situación del cliente\n\n**NEGOCIACIÓN:**\n5. REBATIR OBJECIONES: Responde adecuadamente a las excusas u objeciones del cliente\n6. VENDER LA SOLUCIÓN: Presenta las opciones de pago como beneficio para el cliente\n7. BENEFICIOS: Explica ventajas concretas de pagar (evitar reporte, descuentos, facilidades)\n8. CIERRE: Intenta cerrar con compromiso concreto (fecha, monto, método de pago)\n\n**GESTIÓN DE INFORMACIÓN:**\n9. ACTUALIZACIÓN DE DATOS: Verifica o solicita actualización de teléfono, correo, dirección\n10. DESPEDIDA: Cierra la llamada de forma cortés y profesional\n11. OFERTA CLARA: Presenta opciones de pago específicas (montos, fechas, descuentos)\n\n**CONOCIMIENTO:**\n12. CONOCIMIENTO DEL PRODUCTO: Conoce detalles de la deuda, saldos, fechas, condiciones\n\n**HABILIDADES TÉCNICAS:**\n13. MODULACIÓN: Varía el tono de voz apropiadamente (no monótono ni agresivo)\n14. MULETILLAS: Evita repetir palabras innecesarias (\"¿sí?\", \"¿me entiende?\", \"ehh\", \"o sea\")\n15. RUIDO AMBIENTE: La llamada tiene buena calidad de audio, sin ruidos que dificulten la comunicación\n16. TMO (Tiempo): La llamada tiene duración apropiada (ni demasiado corta <2min ni excesivamente larga >15min)\n\n**PROFESIONALISMO:**\n17. MANEJO DE EMOCIONES: Mantiene la calma ante clientes alterados, no se engancha emocionalmente\n18. ATENCIÓN OPORTUNA: Responde rápido a las preguntas del cliente, no lo deja esperando\n19. TIEMPOS MUERTOS: Evita silencios prolongados incómodos (>10 segundos sin explicación)\n20. CORTE DE COMUNICACIÓN: La llamada NO se corta abruptamente, termina de forma natural\n\n⚠️ REGLAS ESTRICTAS DE EVALUACIÓN:\n\n✅ Marca TRUE solo si hay EVIDENCIA CLARA en la transcripción\n❌ Marca FALSE si:\n   - No hay evidencia del comportamiento\n   - El comportamiento es deficiente o incompleto\n   - Hay evidencia de lo contrario\n\n🔍 SÉ GENEROSO pero JUSTO:\n- Si el agente hace un esfuerzo razonable, marca TRUE\n- No exijas perfección absoluta\n- Considera el contexto de la conversación\n- Si el cliente no permite algo (ej: cuelga rápido), evalúa solo lo que el agente pudo controlar\n\n📊 FORMATO DE SALIDA (JSON puro, sin markdown):\n\n{\n  \"kpi\": {\n    \"1_presentacion\": true,\n    \"2_motivo_claro\": true,\n    \"3_escucha_activa\": false,\n    \"4_preguntar\": true,\n    \"5_rebatir\": false,\n    \"6_vender\": true,\n    \"7_beneficios\": true,\n    \"8_cierre\": false,\n    \"9_actualizacion_datos\": true,\n    \"10_despedida\": true,\n    \"11_oferta\": true,\n    \"12_conocimiento_producto\": true,\n    \"13_modulacion\": true,\n    \"14_muletillas\": false,\n    \"15_ruido_ambiente\": true,\n    \"16_tmo\": true,\n    \"17_manejo_emociones\": true,\n    \"18_atencion_oportuna\": true,\n    \"19_tiempos_muertos\": true,\n    \"20_corte_comunicacion\": true\n  },\n  \"resumen_ejecutivo\": \"Llamada de cobranza a cliente con deuda vencida de $X. El agente se presentó correctamente y explicó el motivo. El cliente mostró disposición inicial pero presentó objeciones económicas. Se ofreció plan de pagos con descuento del X%. El cliente solicitó tiempo para consultar. La llamada tuvo tono profesional y duración de X minutos. No se logró compromiso de pago inmediato pero se acordó seguimiento.\",\n  \"observaciones\": \"KPI 3 - ESCUCHA ACTIVA: El agente interrumpió al cliente en 3 ocasiones cuando intentaba explicar su situación financiera, no permitiendo que termine sus ideas.\\n\\nKPI 5 - REBATIR OBJECIONES: Cuando el cliente mencionó dificultades económicas, el agente no ofreció alternativas ni rebatió la objeción, simplemente insistió en el pago completo.\\n\\nKPI 8 - CIERRE: No se realizó intento de cierre con compromiso concreto. La llamada terminó sin fecha ni monto acordado para seguimiento.\\n\\nKPI 14 - MULETILLAS: Uso excesivo de '¿sí?' al final de cada frase (detectado más de 15 veces), lo cual afecta la profesionalidad de la comunicación.\"\n}\n\nResponde ÚNICAMENTE con el JSON, sin texto adicional antes o después.",
+              "role": "system"
+            },
+            {
+              "content": "TRANSCRIPCIÓN DE LA LLAMADA:\n\n={{ $json.text }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -200,
+        400
+      ],
+      "id": "analyze-kpis",
+      "name": "Analizar KPIs",
+      "credentials": {
+        "openAiApi": {
+          "id": "4ebgwtLss1PCZrf3",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Combinar datos de todos los nodos anteriores para tenerlos disponibles\nconst idx = $itemIndex;\n\n// Datos del parseo de nombre\nconst metaItems = $items('Parsear nombre archivo');\nconst meta = metaItems[idx]?.json || {};\n\n// Datos de la transcripción\nconst transItems = $items('Transcribir audio');\nconst transcript = transItems[idx]?.json?.text || '';\n\n// Datos del análisis de KPIs\nconst currentJson = $json;\n\nreturn {\n  // Metadata del archivo\n  fileId: meta.fileId,\n  fileName: meta.fileName,\n  ejecutivo: meta.ejecutivo,\n  fecha: meta.fecha,\n  hora: meta.hora,\n  \n  // Transcripción\n  transcript: transcript,\n  \n  // Análisis KPI (viene del nodo actual)\n  kpiAnalysis: currentJson,\n  \n  itemIndex: idx\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "merge-data",
+      "name": "Combinar datos"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1iObyGiN6ZhEx1Uw41L8ZTV-x6PIZ4KJjhxFGnKaMctA"
+        },
+        "name": "={{ $json.ejecutivo + ' - Llamada ' + ($json.fecha || 'sin-fecha') + ' - Monitoreo ' + new Date().toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        200,
+        400
+      ],
+      "id": "copy-template",
+      "name": "Copiar plantilla",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "RKA80dU2ew0eUQzH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Preparar datos para actualizar el Sheet\nconst idx = $itemIndex;\n\n// Obtener el ID del sheet copiado (viene del nodo actual - Copiar plantilla)\nconst sheetId = $json.id;\n\n// Obtener datos combinados del nodo anterior\nconst combineItems = $items('Combinar datos');\nconst combined = combineItems[idx]?.json || {};\n\nconst ejecutivo = combined.ejecutivo || '';\nconst fechaLlamada = combined.fecha || '';\nconst fechaMonitoreo = new Date().toISOString().slice(0,10);\nconst transcript = combined.transcript || '';\nconst audioFileId = combined.fileId || '';\n\n// Extraer KPIs del análisis\nconst ai = combined.kpiAnalysis || {};\nlet kpi = {};\nlet observaciones = '';\nlet resumen = '';\n\ntry {\n  if (ai.kpi) {\n    kpi = ai.kpi;\n  } else if (ai.message?.content?.kpi) {\n    kpi = ai.message.content.kpi;\n  }\n  \n  observaciones = ai.observaciones || ai.message?.content?.observaciones || '';\n  resumen = ai.resumen_ejecutivo || ai.message?.content?.resumen_ejecutivo || '';\n} catch (e) {\n  console.error('Error extrayendo KPIs:', e);\n}\n\n// Función para convertir a booleano\nfunction toBool(v) {\n  if (v === true || v === 'true') return true;\n  if (v === false || v === 'false') return false;\n  return null;\n}\n\n// Función para encontrar key de KPI por número\nfunction findKpiKey(kpiObj, num) {\n  const keys = Object.keys(kpiObj || {});\n  const pattern = new RegExp('^' + num + '(?:[_\\\\-\\\\s]|$)');\n  return keys.find(k => pattern.test(k));\n}\n\nconst TAB = 'Hoja 1';\nconst updates = [];\n\n// Encabezados\nif (ejecutivo) {\n  updates.push({ range: TAB + '!B6', values: [[ejecutivo]] });\n}\nif (fechaLlamada) {\n  updates.push({ range: TAB + '!G5', values: [[fechaLlamada]] });\n}\nupdates.push({ range: TAB + '!G6', values: [[fechaMonitoreo]] });\n\n// KPIs (E9:F29)\nconst START = 9;\nconst ROWS = 21;\nconst siCol = Array.from({ length: ROWS }, () => ['']);\nconst noCol = Array.from({ length: ROWS }, () => ['']);\n\nfor (let i = 1; i <= 20; i++) {\n  const rowIdx = i <= 10 ? (i - 1) : i;\n  if (rowIdx === 10) continue;\n  \n  const key = findKpiKey(kpi, i);\n  const val = toBool(key ? kpi[key] : undefined);\n  \n  if (val === true) siCol[rowIdx][0] = 'SI';\n  if (val === false) noCol[rowIdx][0] = 'NO';\n}\n\nupdates.push({ range: TAB + '!E' + START + ':E29', values: siCol });\nupdates.push({ range: TAB + '!F' + START + ':F29', values: noCol });\n\n// Detalle (resumen o transcripción)\nconst detalle = (resumen && resumen.trim()) ? resumen : transcript;\nif (detalle.trim()) {\n  updates.push({ range: TAB + '!B43', values: [[detalle.slice(0, 49000)]] });\n}\n\n// Observaciones\nif (observaciones.trim()) {\n  updates.push({ range: TAB + '!D43', values: [[observaciones.slice(0, 49000)]] });\n}\n\nreturn {\n  sheetId: sheetId,\n  audioFileId: audioFileId,\n  valueInputOption: 'USER_ENTERED',\n  data: updates,\n  itemIndex: idx\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        400
+      ],
+      "id": "prepare-sheet-data",
+      "name": "Preparar datos Sheet"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{ $json.sheetId }}/values:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"valueInputOption\": $json.valueInputOption, \"data\": $json.data } }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        400
+      ],
+      "id": "update-sheet",
+      "name": "Actualizar Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "T7mkeTK4gcJlJSlU",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Preservar IDs para los siguientes nodos\nconst idx = $itemIndex;\n\nconst prepareItems = $items('Preparar datos Sheet');\nconst prepData = prepareItems[idx]?.json || {};\n\nreturn {\n  sheetId: prepData.sheetId,\n  audioFileId: prepData.audioFileId,\n  itemIndex: idx\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        400
+      ],
+      "id": "preserve-ids",
+      "name": "Preservar IDs"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.sheetId }}"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultUrl": "https://www.googleapis.com/drive/v3/files/root",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "19FwYUrOWZYODF8d8D-yxipZ_Z85w2Kq-"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        400
+      ],
+      "id": "move-sheet",
+      "name": "Mover Sheet a carpeta",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "RKA80dU2ew0eUQzH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.audioFileId }}"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultUrl": "https://www.googleapis.com/drive/v3/files/root",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1lOetbvqJeN8lTmhlLDKC-4gvY3XGv-y4"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        400
+      ],
+      "id": "move-audio",
+      "name": "Mover audio a procesadas",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "RKA80dU2ew0eUQzH",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Activador de programación": {
+      "main": [
+        [
+          {
+            "node": "Listar archivos en Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar archivos en Drive": {
+      "main": [
+        [
+          {
+            "node": "Filtrar solo audios",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar solo audios": {
+      "main": [
+        [
+          {
+            "node": "Parsear nombre archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear nombre archivo": {
+      "main": [
+        [
+          {
+            "node": "Descargar audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribir audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribir audio": {
+      "main": [
+        [
+          {
+            "node": "Analizar KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar KPIs": {
+      "main": [
+        [
+          {
+            "node": "Combinar datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combinar datos": {
+      "main": [
+        [
+          {
+            "node": "Copiar plantilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar plantilla": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos Sheet": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar Sheet": {
+      "main": [
+        [
+          {
+            "node": "Preservar IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preservar IDs": {
+      "main": [
+        [
+          {
+            "node": "Mover Sheet a carpeta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mover Sheet a carpeta": {
+      "main": [
+        [
+          {
+            "node": "Mover audio a procesadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "drive-v2-fixed",
+  "meta": {
+    "instanceId": "ce4edd56f4607ba5d033409b32ead6ae3248c7551c06b85720612419577a50b3"
+  },
+  "id": "drive-workflow-v2",
+  "tags": []
+}
