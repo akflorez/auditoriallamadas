@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including devDependencies since tsx/typescript are in devDependencies)
-RUN npm ci
+RUN npm install
 
 # Copy prisma files and generate client
 COPY prisma ./prisma/
