@@ -121,20 +121,17 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#ebf5fa] via-[#f3f9fc] to-[#f9fdfa] p-4 md:p-6 lg:p-8 select-none font-sans">
       
-      {/* Central Login Container */}
-      <div className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-[0_24px_60px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col lg:flex-row overflow-hidden min-h-[640px] lg:h-[700px] relative z-10">
+      {/* Central Login Container with Mockup Background */}
+      <div 
+        className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-[0_24px_60px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col lg:flex-row overflow-hidden min-h-[640px] lg:h-[700px] relative z-10 bg-cover bg-center"
+        style={{ backgroundImage: 'url(/login_aplicativo.png)' }}
+      >
         
-        {/* Left Side: Brand & Visuals (Using user login image) */}
-        <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden bg-[#e7f5f9]">
-          <img 
-            src="/login_aplicativo.png" 
-            alt="EMDECOB Call QA Illustration" 
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {/* Left Side: Empty spacer to let background branding show */}
+        <div className="hidden lg:flex lg:w-[52%]" />
 
-        {/* Right Side: Login Form */}
-        <div className="w-full lg:w-[48%] p-8 lg:p-12 flex flex-col justify-between bg-white overflow-y-auto">
+        {/* Right Side: Login Form (Transparent on desktop to reveal white mockup background) */}
+        <div className="w-full lg:w-[48%] p-8 lg:p-12 flex flex-col justify-between bg-white lg:bg-transparent overflow-y-auto">
           {/* Logo visible only on mobile */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-12 h-12 rounded-xl bg-[#e6f7f0] flex items-center justify-center text-[#0ea971] shadow-sm">
