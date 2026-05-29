@@ -7,9 +7,11 @@ import OpenAI from 'openai';
 
 const router = express.Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getOpenAIClient = () => {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'no-key-provided',
+  });
+};
 
 // Multer config for Excel uploads
 const storage = multer.diskStorage({
@@ -96,7 +98,7 @@ IMPORTANTE:
 ]
 `;
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: "gpt-4o",
         response_format: { type: "json_object" },
         messages: [
