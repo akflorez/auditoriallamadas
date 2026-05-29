@@ -174,13 +174,13 @@ const AudioDetail: React.FC = () => {
             <Save size={18} /> {saving ? 'Sincronizando...' : 'Guardar Cambios QA'}
           </button>
           <button 
-            onClick={() => window.open(`http://localhost:5000/api/audios/download-template/${id}`, '_blank')}
+            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/audios/download-template/${id}`, '_blank')}
             className="btn-premium bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200"
           >
             <Database size={18} /> Plantilla Llena
           </button>
           <button 
-            onClick={() => window.open(`http://localhost:5000/api/audios/export/${id}`, '_blank')}
+            onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/audios/export/${id}`, '_blank')}
             className="btn-premium bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200/50"
           >
             <Download size={18} /> Base de Datos

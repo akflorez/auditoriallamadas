@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./emdecob-backend
+      dockerfile: Dockerfile
+    container_name: emdecob-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./emdecob-backend/prisma:/app/prisma
+      - ./emdecob-backend/uploads:/app/uploads
+      - ./emdecob-backend/temp:/app/temp
+    environment:
+      - PORT=5000
+      - DATABASE_URL=file:./prisma/dev.db
+      # Add other environment variables as needed or let Coolify inject them
+    restart: always
+
+  frontend:
+    build:
+      context: ./emdecob-monitor
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+    container_name: emdecob-monitor
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always

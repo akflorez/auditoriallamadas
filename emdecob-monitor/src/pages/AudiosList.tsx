@@ -450,7 +450,7 @@ const AudiosList: React.FC = () => {
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2">
                       <button 
-                        onClick={() => window.open(`http://localhost:5000/api/audios/download-template/${audio.id}`, '_blank')}
+                        onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/audios/download-template/${audio.id}`, '_blank')}
                         className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                         title="Descargar Formato QA"
                       >
