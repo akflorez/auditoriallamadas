@@ -1,14 +1,14 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-# Install build dependencies for better-sqlite3 (which compiles native C++ code)
-RUN apk add --no-cache python3 make g++
+# Install OpenSSL (needed by Prisma query engine)
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (including devDependencies since tsx/typescript are in devDependencies)
+# Install dependencies (pre-compiled binaries of better-sqlite3 are downloaded automatically on Debian)
 RUN npm install
 
 # Copy prisma files and generate client
