@@ -2,15 +2,18 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Client instantiation helper to prevent startup crash when OPENAI_API_KEY is missing
+const getClient = (apiKey?: string) => {
+  return new OpenAI({
+    apiKey: apiKey || process.env.OPENAI_API_KEY || 'no-key-provided',
+  });
+};
 
 /**
  * 1. Convert Audio to text using Whisper
  */
 export const transcribeAudio = async (filePath: string, apiKey?: string): Promise<string> => {
-  const client = apiKey ? new OpenAI({ apiKey }) : new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = getClient(apiKey);
   try {
     const response = await client.audio.transcriptions.create({
       file: fs.createReadStream(filePath),
@@ -28,7 +31,7 @@ export const transcribeAudio = async (filePath: string, apiKey?: string): Promis
  * 2. Analyze the context of the transcript against the KPI configuration
  */
 export const analyzeTranscript = async (transcript: string, promptBase: string, apiKey?: string): Promise<any> => {
-  const client = apiKey ? new OpenAI({ apiKey }) : new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = getClient(apiKey);
   try {
     const response = await client.chat.completions.create({
       model: "gpt-4o",
@@ -61,7 +64,7 @@ export const analyzeTranscript = async (transcript: string, promptBase: string, 
  * 3. Analyze image screenshots (OCR + Quality Audit) using GPT-4o vision
  */
 export const analyzeImage = async (imagePath: string, promptBase: string, apiKey?: string): Promise<any> => {
-  const client = apiKey ? new OpenAI({ apiKey }) : new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const client = getClient(apiKey);
   try {
     const fileBuffer = fs.readFileSync(imagePath);
     const base64Image = fileBuffer.toString('base64');
