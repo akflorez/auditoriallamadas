@@ -107,7 +107,10 @@ const Login: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@emdecob.com' && password === 'admin123') {
+    const isDefaultAdmin = email === 'admin@emdecob.com' && password === 'admin123';
+    const isEmdecobUser = (email === 'emdecob' || email === 'emdecob@emdecob.com') && password === '270227';
+    
+    if (isDefaultAdmin || isEmdecobUser) {
       localStorage.setItem('emdecob_auth', 'true');
       navigate('/');
     } else {
@@ -121,138 +124,13 @@ const Login: React.FC = () => {
       {/* Central Login Container */}
       <div className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-[0_24px_60px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col lg:flex-row overflow-hidden min-h-[640px] lg:h-[700px] relative z-10">
         
-        {/* Left Side: Brand & Visuals */}
-        <div className="hidden lg:flex lg:w-[52%] bg-gradient-to-br from-[#ebfcf7] to-[#e7f5f9] p-10 lg:p-12 flex-col justify-between relative overflow-hidden">
-          
-          {/* SVG Background Patterns (Audio waves, charts, grids) */}
-          <svg className="absolute inset-0 w-full h-full text-emerald-500/10 pointer-events-none" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(16, 185, 129, 0.04)" strokeWidth="0.5" strokeDasharray="3 3"/>
-              </pattern>
-              <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(16, 185, 129, 0.12)" />
-                <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
-              </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-            
-            {/* Waveform Bars on the left */}
-            <line x1="10" y1="348" x2="10" y2="352" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="20" y1="345" x2="20" y2="355" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="30" y1="338" x2="30" y2="362" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="40" y1="330" x2="40" y2="370" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="50" y1="325" x2="50" y2="375" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="60" y1="335" x2="60" y2="365" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="70" y1="340" x2="70" y2="360" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="80" y1="320" x2="80" y2="380" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="90" y1="290" x2="90" y2="410" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="100" y1="260" x2="100" y2="440" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="110" y1="300" x2="110" y2="400" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="120" y1="325" x2="120" y2="375" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="130" y1="335" x2="130" y2="365" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="140" y1="310" x2="140" y2="390" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="150" y1="270" x2="150" y2="430" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="160" y1="290" x2="160" y2="410" stroke="rgba(16, 185, 129, 0.3)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="170" y1="330" x2="170" y2="370" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="180" y1="340" x2="180" y2="360" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="190" y1="325" x2="190" y2="375" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="200" y1="315" x2="200" y2="385" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="210" y1="330" x2="210" y2="370" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="220" y1="342" x2="220" y2="358" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="3" strokeLinecap="round" />
-            <line x1="230" y1="348" x2="230" y2="352" stroke="rgba(16, 185, 129, 0.1)" strokeWidth="3" strokeLinecap="round" />
-
-            {/* Connecting transition wave line */}
-            <path d="M 230 350 Q 250 350 270 360 T 310 370 T 350 350" stroke="rgba(16, 185, 129, 0.25)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-
-            {/* Line chart transition with gradient fill */}
-            <path d="M 350 350 C 365 350 375 365 380 370 C 400 390 430 430 450 410 C 470 390 500 330 520 350 C 540 370 570 410 590 390 C 610 370 640 280 660 300 C 680 320 710 350 730 330 C 750 310 780 260 800 240 L 800 500 L 350 500 Z" fill="url(#chartGradient)" />
-            <path d="M 350 350 C 365 350 375 365 380 370 C 400 390 430 430 450 410 C 470 390 500 330 520 350 C 540 370 570 410 590 390 C 610 370 640 280 660 300 C 680 320 710 350 730 330 C 750 310 780 260 800 240" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-            
-            {/* Chart points */}
-            <circle cx="450" cy="410" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-            <circle cx="520" cy="350" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-            <circle cx="590" cy="390" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-            <circle cx="660" cy="300" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-            <circle cx="730" cy="330" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-            <circle cx="800" cy="240" r="4" fill="#10b981" stroke="white" strokeWidth="1.5" />
-          </svg>
-
-          {/* Decorative floating icons */}
-          <div className="absolute right-[12%] top-[34%] text-[#a5e3d3]/30 pointer-events-none">
-            <LogoHeadset className="w-48 h-48 opacity-25" />
-          </div>
-          <div className="absolute right-[18%] top-[54%] w-14 h-14 rounded-full border border-[#a5e3d3]/40 flex items-center justify-center text-[#a5e3d3]/50 pointer-events-none">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-              <rect x="9" y="3" width="6" height="12" rx="3" />
-              <path d="M5 10c0 4.418 3.582 8 8 8s8-3.582 8-8" />
-              <line x1="12" y1="18" x2="12" y2="21" />
-            </svg>
-          </div>
-
-          {/* Top: Logo */}
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-[#e6f7f0] flex items-center justify-center shadow-sm">
-              <LogoHeadset className="w-8 h-8 text-[#0ea971] animate-pulse" />
-            </div>
-            <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight font-outfit uppercase">
-              EMDECOB <span className="text-[#0ea971] font-bold">CALL QA</span>
-            </h2>
-          </div>
-
-          {/* Center: Hero Message */}
-          <div className="relative z-10 my-auto py-8">
-            <h1 className="text-4xl lg:text-[40px] font-extrabold text-[#1e293b] leading-[1.2] font-outfit tracking-tight mb-4 animate-slide-up">
-              Centro Inteligente <br />
-              de <span className="text-[#0ea971]">Calidad de Llamadas</span>
-            </h1>
-            <p className="text-slate-500 font-medium text-base max-w-sm leading-relaxed">
-              Monitoreo, evaluación y análisis de interacciones para fortalecer la gestión operativa.
-            </p>
-          </div>
-
-          {/* Bottom: Feature Cards */}
-          <div className="relative z-10">
-            <div className="grid grid-cols-3 gap-4 lg:gap-5 max-w-xl w-full">
-              
-              <div className="bg-white border border-slate-100 shadow-[0_10px_25px_rgba(0,0,0,0.02)] rounded-[20px] p-4 flex flex-col items-center justify-center gap-2.5 transition-all hover:translate-y-[-4px] hover:shadow-[0_16px_35px_rgba(16,185,129,0.06)] group cursor-pointer w-full h-[124px] lg:h-[132px]">
-                <div className="text-[#0ea971] transition-transform duration-300 group-hover:scale-110">
-                  <IconEvaluation className="w-11 h-11 lg:w-12 lg:h-12" />
-                </div>
-                <p className="text-[13px] font-bold text-slate-700 leading-snug tracking-tight text-center">Evaluación <br />automática</p>
-              </div>
-
-              <div className="bg-white border border-slate-100 shadow-[0_10px_25px_rgba(0,0,0,0.02)] rounded-[20px] p-4 flex flex-col items-center justify-center gap-2.5 transition-all hover:translate-y-[-4px] hover:shadow-[0_16px_35px_rgba(16,185,129,0.06)] group cursor-pointer w-full h-[124px] lg:h-[132px]">
-                <div className="text-[#0ea971] transition-transform duration-300 group-hover:scale-110">
-                  <IconQuality className="w-11 h-11 lg:w-12 lg:h-12" />
-                </div>
-                <p className="text-[13px] font-bold text-slate-700 leading-snug tracking-tight text-center">Indicadores <br />de calidad</p>
-              </div>
-
-              <div className="bg-white border border-slate-100 shadow-[0_10px_25px_rgba(0,0,0,0.02)] rounded-[20px] p-4 flex flex-col items-center justify-center gap-2.5 transition-all hover:translate-y-[-4px] hover:shadow-[0_16px_35px_rgba(16,185,129,0.06)] group cursor-pointer w-full h-[124px] lg:h-[132px]">
-                <div className="text-[#0ea971] transition-transform duration-300 group-hover:scale-110">
-                  <IconAI className="w-11 h-11 lg:w-12 lg:h-12" />
-                </div>
-                <p className="text-[13px] font-bold text-slate-700 leading-snug tracking-tight text-center">Análisis <br />con IA</p>
-              </div>
-
-            </div>
-
-            {/* Left Footer */}
-            <div className="mt-8 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#e6f7f0] flex items-center justify-center text-[#0ea971] shadow-sm">
-                <ShieldCheck size={20} strokeWidth={2} />
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-semibold text-slate-500">
-                  Desarrollado por <span className="text-[#0ea971] font-bold">EMDECOB</span>
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium leading-none mt-0.5">
-                  Dirección de Analítica de Datos
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Left Side: Brand & Visuals (Using user login image) */}
+        <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden bg-[#e7f5f9]">
+          <img 
+            src="/login_aplicativo.png" 
+            alt="EMDECOB Call QA Illustration" 
+            className="w-full h-full object-cover"
+          />
         </div>
 
         {/* Right Side: Login Form */}
